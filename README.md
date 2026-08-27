@@ -1,12 +1,13 @@
 # ctxpack
 
-`ctxpack` is a fast, offline command-line interface (CLI) tool designed to scan, analyze, and package codebases into optimized context prompts for Large Language Models (LLMs). It calculates token counts using `tiktoken`, enforces strict token budgets, generates visual directory trees, and exports structured context directly to the system clipboard or a specified output file.
+`ctxpack` is a fast, offline command-line interface (CLI) tool designed to scan, analyze, and package codebases into optimized context prompts for Large Language Models (LLMs). It calculates token counts using `tiktoken`, enforces strict token budgets, generates visual directory trees, provides interactive file selection, and exports structured context directly to the system clipboard or a specified output file.
 
 ---
 
 ## Key Features
 
 - **Automated Repository Scanning**: Discovers source code files while honoring `.gitignore` rules and built-in ignore patterns.
+- **Interactive File Selection**: Select or deselect discovered files interactively using an in-terminal prompt (`-i`, `--interactive`) with real-time per-file token metrics.
 - **Binary File Exclusion**: Automatically detects and excludes binary, compiled, and non-text files.
 - **Accurate Token Estimation**: Measures token consumption using OpenAI's `cl100k_base` encoding via `tiktoken`.
 - **Token Budget Management**: Supports budget limits (e.g., `8000`, `32k`, `128k`) and prioritizes files within the designated capacity.
@@ -62,6 +63,7 @@ ctxpack [TARGET_PATH] [OPTIONS]
 
 | Flag | Option | Value | Description |
 | :--- | :--- | :--- | :--- |
+| `-i` | `--interactive` | None | Launches an interactive terminal prompt to manually select files. |
 | `-b` | `--budget` | `TEXT` | Maximum token budget limit (e.g., `8000`, `32k`, `128k`, `1m`). |
 | `-o` | `--output` | `PATH` | Path to the destination file where output will be saved. |
 | `-c` | `--copy` | None | Explicitly copies the generated context to the system clipboard. |
@@ -83,7 +85,22 @@ Scan the current directory, display token metrics, and copy the XML prompt to th
 ctxpack
 ```
 
-### 2. Scanning a Specific Subdirectory
+### 2. Interactive File Selection
+
+Launch an interactive checklist to cherry-pick files for inclusion:
+
+```bash
+ctxpack -i
+```
+
+Interactive controls:
+- **Arrow Keys (Up / Down)**: Navigate through candidate files.
+- **Enter**: Toggle file selection state (`[x]` / `[ ]`).
+- **[Select All] / [Deselect All]**: Bulk toggle all discovered files.
+- **SUBMIT**: Finalize selection and generate the packaged context.
+- **Ctrl+C**: Cancel the operation safely.
+
+### 3. Scanning a Specific Subdirectory
 
 Target a specific module or folder rather than the repository root:
 
@@ -91,7 +108,7 @@ Target a specific module or folder rather than the repository root:
 ctxpack ./src/services
 ```
 
-### 3. Enforcing a Token Budget
+### 4. Enforcing a Token Budget
 
 Enforce a token threshold suitable for standard LLM context windows (e.g., 32,000 tokens):
 
@@ -101,7 +118,15 @@ ctxpack -b 32k
 
 Files exceeding the budget limit are skipped, and a summary of excluded files is reported in the terminal.
 
-### 4. Exporting to a File
+### 5. Combining Interactive Selection with Budget Limits
+
+Interactively select candidate files while enforcing a maximum budget ceiling:
+
+```bash
+ctxpack -i -b 64k
+```
+
+### 6. Exporting to a File
 
 Write the generated context payload directly to a file:
 
@@ -115,7 +140,7 @@ Generate a Markdown-formatted context file:
 ctxpack -f markdown -o context.md
 ```
 
-### 5. Writing to File and Copying to Clipboard Simultaneously
+### 7. Writing to File and Copying to Clipboard Simultaneously
 
 Save output to disk while simultaneously copying it to the clipboard:
 
@@ -123,7 +148,7 @@ Save output to disk while simultaneously copying it to the clipboard:
 ctxpack -o context.xml -c
 ```
 
-### 6. Excluding Custom Patterns
+### 8. Excluding Custom Patterns
 
 Exclude specific files or patterns (e.g., tests, documentation, lockfiles) in addition to `.gitignore`:
 
@@ -131,7 +156,7 @@ Exclude specific files or patterns (e.g., tests, documentation, lockfiles) in ad
 ctxpack -e "*.test.py" -e "*.spec.ts" -e "docs/*"
 ```
 
-### 7. Omitting Directory Tree
+### 9. Omitting Directory Tree
 
 Generate context without the embedded directory structure overview:
 
@@ -139,7 +164,7 @@ Generate context without the embedded directory structure overview:
 ctxpack --no-tree -o context.xml
 ```
 
-### 8. Performing a Dry Run
+### 10. Performing a Dry Run
 
 Analyze token usage and view the breakdown table without writing files or modifying clipboard contents:
 
@@ -161,7 +186,10 @@ The XML output encapsulates directory structure and individual files inside sema
     ├── ctxpack
     │   ├── cli.py
     │   ├── formatter.py
-    │   └── scanner.py
+    │   ├── scanner.py
+    │   ├── tokenizer.py
+    │   ├── tui.py
+    │   └── writer.py
     └── pyproject.toml
   </directory_structure>
 
@@ -187,7 +215,10 @@ Markdown format organizes files under hierarchical headings and code blocks:
 ├── ctxpack
 │   ├── cli.py
 │   ├── formatter.py
-│   └── scanner.py
+│   ├── scanner.py
+│   ├── tokenizer.py
+│   ├── tui.py
+│   └── writer.py
 └── pyproject.toml
 ```
 
@@ -228,9 +259,10 @@ Markdown format organizes files under hierarchical headings and code blocks:
 ctxpack/
 ├── __init__.py       # Package entry point
 ├── cli.py            # Click command definitions, Rich terminal UI, and workflow orchestration
+├── formatter.py      # XML / Markdown rendering and ASCII directory tree builder
 ├── scanner.py        # Recursive directory traversal, binary filtering, and gitignore evaluation
 ├── tokenizer.py      # tiktoken encoding, token measurement, and budget allocation logic
-├── formatter.py      # XML / Markdown rendering and ASCII directory tree builder
+├── tui.py            # Interactive terminal file selection prompt using questionary
 └── writer.py         # File system writer and clipboard integration handler
 ```
 

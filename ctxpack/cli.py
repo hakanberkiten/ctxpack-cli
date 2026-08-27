@@ -8,6 +8,7 @@ from rich.table import Table
 from ctxpack.formatter import format_to_markdown, format_to_xml
 from ctxpack.scanner import scan_directory
 from ctxpack.tokenizer import parse_budget, process_files
+from ctxpack.tui import prompt_file_selection
 from ctxpack.writer import copy_to_clipboard, write_to_file
 
 console = Console()
@@ -15,6 +16,7 @@ console = Console()
 
 @click.command(name="ctxpack", help="Package codebase context for LLMs with token budgeting.")
 @click.argument("target_path", default=".", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option("-i", "--interactive", is_flag=True, help="Interactively select files to pack")
 @click.option("-b", "--budget", help="Token budget limit (Example: 32k, 128k, 8000)")
 @click.option("-o", "--output", type=click.Path(path_type=Path), help="Output file path")
 @click.option("-c", "--copy", is_flag=True, help="Copy the generated output to the clipboard")
@@ -24,6 +26,7 @@ console = Console()
 @click.option("-d", "--dry-run", is_flag=True, help="Show only token analysis table without generating package")
 def main(
     target_path: Path,
+    interactive: bool,
     budget: str,
     output: Path,
     copy: bool,
@@ -46,6 +49,20 @@ def main(
         return
 
     with console.status("[bold green]Calculating tokens...[/bold green]"):
+        all_contexts, _, total_raw_tokens = process_files(files, target_path, budget=None)
+
+    if interactive:
+        selected_contexts = prompt_file_selection(all_contexts)
+        if selected_contexts is None:
+            console.print("[yellow]Operation cancelled.[/yellow]")
+            return
+        if not selected_contexts:
+            console.print("[yellow]No files selected. Exiting.[/yellow]")
+            return
+
+        selected_paths = [ctx.path for ctx in selected_contexts]
+        included, excluded, total_tokens = process_files(selected_paths, target_path, budget=parsed_budget)
+    else:
         included, excluded, total_tokens = process_files(files, target_path, budget=parsed_budget)
 
     table = Table(title=f"Context Analysis ({target_path.resolve()})", show_header=True, header_style="bold magenta")
@@ -79,7 +96,7 @@ def main(
     if copy or (not output and not copy):
         copied = copy_to_clipboard(formatted_content)
         if copied:
-            actions_taken.append("[bold green]Context copied to clipboard![/bold green] (You can paste it directly to LLM)")
+            actions_taken.append("[bold green]Context copied to clipboard.[/bold green] (Ready to paste to LLM)")
         else:
             actions_taken.append("[yellow]Failed to copy to clipboard.[/yellow]")
 
