@@ -16,6 +16,7 @@ def test_default_ignores_contains_standard_entries():
     assert "__pycache__" in DEFAULT_IGNORES
     assert "dist" in DEFAULT_IGNORES
     assert "build" in DEFAULT_IGNORES
+    assert ".pytest_cache" in DEFAULT_IGNORES
 
 
 def test_is_binary_file_with_text(tmp_path: Path):

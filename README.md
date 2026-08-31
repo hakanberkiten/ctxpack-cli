@@ -11,6 +11,7 @@
 - **Binary File Exclusion**: Automatically detects and excludes binary, compiled, and non-text files.
 - **Accurate Token Estimation**: Measures token consumption using OpenAI's `cl100k_base` encoding via `tiktoken`.
 - **Token Budget Management**: Supports budget limits (e.g., `8000`, `32k`, `128k`) and prioritizes files within the designated capacity.
+- **Built-in Line Numbering**: Automatically formats all output files with aligned 1-based line numbers (`1 | ...`) for precise LLM code references and citations.
 - **Multiple Output Formats**: Generates prompt-ready output in either structured XML or standard Markdown.
 - **Directory Tree Generation**: Builds a hierarchical ASCII directory tree of included files for structural awareness.
 - **Seamless Integration**: Automatically copies output to the clipboard when no destination file is specified.
@@ -178,6 +179,8 @@ ctxpack -d
 
 ## Output Formats
 
+All output payloads automatically include aligned 1-based line numbers (`1 | ...`), enabling LLMs to cite exact line numbers when offering suggestions, explaining logic, or generating patches.
+
 ### XML Format (Default)
 
 The XML output encapsulates directory structure and individual files inside semantic XML tags, making it ideal for LLMs such as Claude, GPT-4, and Gemini:
@@ -196,18 +199,23 @@ The XML output encapsulates directory structure and individual files inside sema
   </directory_structure>
 
   <file path="ctxpack/cli.py" language="python" tokens="863">
-    ... file content ...
+    1 | from pathlib import Path
+    2 | import click
+    3 | from rich.console import Console
+    ...
   </file>
 
   <file path="pyproject.toml" language="toml" tokens="180">
-    ... file content ...
+    1 | [build-system]
+    2 | requires = ["hatchling"]
+    ...
   </file>
 </project_context>
 ```
 
 ### Markdown Format
 
-Markdown format organizes files under hierarchical headings and code blocks:
+Markdown format organizes files under hierarchical headings and syntax-highlighted code blocks:
 
 ````markdown
 # Project Context
@@ -228,12 +236,17 @@ Markdown format organizes files under hierarchical headings and code blocks:
 
 ### `ctxpack/cli.py` (863 tokens)
 ```python
-... file content ...
+1 | from pathlib import Path
+2 | import click
+3 | from rich.console import Console
+...
 ```
 
 ### `pyproject.toml` (180 tokens)
 ```toml
-... file content ...
+1 | [build-system]
+2 | requires = ["hatchling"]
+...
 ```
 ````
 
@@ -267,7 +280,7 @@ ctxpack/
 ├── tui.py            # Interactive terminal file selection prompt with search bar & fuzzy filter
 └── writer.py         # File system writer and clipboard integration handler
 
-tests/                # Automated pytest test suite (69 tests)
+tests/                # Automated pytest test suite (70 tests)
 ├── test_cli.py
 ├── test_formatter.py
 ├── test_scanner.py

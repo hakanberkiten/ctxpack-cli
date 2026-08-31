@@ -64,7 +64,18 @@ def build_directory_tree(files: List[FileContext]) -> str:
     return "\n".join(render_tree(tree))
 
 
-def format_to_xml(files: List[FileContext], include_tree: bool = True) -> str:
+def format_file_content(content: str) -> List[str]:
+    lines = content.splitlines()
+    if not lines:
+        return []
+    width = len(str(len(lines)))
+    return [f"{i:{width}d} | {line}" for i, line in enumerate(lines, start=1)]
+
+
+def format_to_xml(
+    files: List[FileContext],
+    include_tree: bool = True,
+) -> str:
     lines = ["<project_context>"]
 
     if include_tree and files:
@@ -76,7 +87,8 @@ def format_to_xml(files: List[FileContext], include_tree: bool = True) -> str:
     for f in files:
         lang = detect_language(f.path)
         lines.append(f'  <file path="{f.relative_path}" language="{lang}" tokens="{f.token_count}">')
-        for content_line in f.content.splitlines():
+        formatted_lines = format_file_content(f.content)
+        for content_line in formatted_lines:
             lines.append(f"    {content_line}")
         lines.append("  </file>\n")
 
@@ -84,7 +96,10 @@ def format_to_xml(files: List[FileContext], include_tree: bool = True) -> str:
     return "\n".join(lines)
 
 
-def format_to_markdown(files: List[FileContext], include_tree: bool = True) -> str:
+def format_to_markdown(
+    files: List[FileContext],
+    include_tree: bool = True,
+) -> str:
     lines = ["# Project Context\n"]
 
     if include_tree and files:
@@ -97,7 +112,8 @@ def format_to_markdown(files: List[FileContext], include_tree: bool = True) -> s
         lang = detect_language(f.path)
         lines.append(f"### `{f.relative_path}` ({f.token_count:,} tokens)")
         lines.append(f"```{lang}")
-        lines.append(f.content)
+        formatted_lines = format_file_content(f.content)
+        lines.append("\n".join(formatted_lines))
         lines.append("```\n")
 
     return "\n".join(lines)

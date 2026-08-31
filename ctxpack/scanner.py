@@ -24,6 +24,7 @@ DEFAULT_IGNORES = {
     "yarn.lock",
     "pnpm-lock.yaml",
     "Cargo.lock",
+    ".pytest_cache",
 }
 
 

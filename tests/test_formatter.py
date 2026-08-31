@@ -79,7 +79,7 @@ def test_format_to_xml_with_tree():
     assert 'path="src/main.py"' in xml_output
     assert 'language="python"' in xml_output
     assert 'tokens="5"' in xml_output
-    assert "print('hello')" in xml_output
+    assert "1 | print('hello')" in xml_output
     assert "</file>" in xml_output
     assert "</project_context>" in xml_output
 
@@ -98,6 +98,7 @@ def test_format_to_xml_without_tree():
     assert "<project_context>" in xml_output
     assert "<directory_structure>" not in xml_output
     assert 'path="src/main.py"' in xml_output
+    assert "1 | x = 1" in xml_output
 
 
 def test_format_to_markdown_with_tree():
@@ -117,7 +118,7 @@ def test_format_to_markdown_with_tree():
     assert "## Files" in md_output
     assert "### `src/main.py` (4 tokens)" in md_output
     assert "```python" in md_output
-    assert "print('hi')" in md_output
+    assert "1 | print('hi')" in md_output
 
 
 def test_format_to_markdown_without_tree():
@@ -135,3 +136,22 @@ def test_format_to_markdown_without_tree():
     assert "## Directory Structure" not in md_output
     assert "## Files" in md_output
     assert "### `src/main.py` (4 tokens)" in md_output
+    assert "1 | print('hi')" in md_output
+
+
+def test_format_multiline_padding():
+    files = [
+        FileContext(
+            path=Path("src/multi.py"),
+            relative_path="src/multi.py",
+            content="\n".join([f"line_{i}" for i in range(1, 15)]),
+            token_count=30,
+        )
+    ]
+
+    xml_output = format_to_xml(files)
+    assert " 1 | line_1" in xml_output
+    assert "10 | line_10" in xml_output
+    assert "14 | line_14" in xml_output
+
+

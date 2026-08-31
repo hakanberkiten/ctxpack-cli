@@ -39,6 +39,7 @@ def test_cli_output_file(tmp_path: Path):
         content = output_file.read_text(encoding="utf-8")
         assert "<project_context>" in content
         assert "app.py" in content
+        assert "1 | def app():" in content
 
 
 def test_cli_markdown_format(tmp_path: Path):
@@ -54,6 +55,7 @@ def test_cli_markdown_format(tmp_path: Path):
     content = output_file.read_text(encoding="utf-8")
     assert "# Project Context" in content
     assert "```python" in content
+    assert "1 | def app():" in content
 
 
 def test_cli_dry_run(tmp_path: Path):
@@ -165,3 +167,5 @@ def test_cli_interactive_selection_success(tmp_path: Path):
         assert result.exit_code == 0
         assert "src/app.py" in result.output
         assert "Included Files: 1" in result.output
+
+
