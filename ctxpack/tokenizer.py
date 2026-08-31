@@ -20,7 +20,7 @@ def get_tokenizer(model_name: str = "cl100k_base") -> tiktoken.Encoding:
 
 
 def parse_budget(budget_str: Optional[str]) -> Optional[int]:
-    if not budget_str:
+    if not budget_str or not budget_str.strip():
         return None
 
     cleaned = budget_str.strip().lower()

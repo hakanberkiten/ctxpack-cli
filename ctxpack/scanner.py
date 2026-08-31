@@ -8,6 +8,7 @@ DEFAULT_IGNORES = {
     ".venv",
     "venv",
     "env",
+    ".env",
     "__pycache__",
     "node_modules",
     "bin",
@@ -52,7 +53,7 @@ def load_gitignore_spec(root_path: Path, extra_excludes: List[str] = None) -> pa
         except OSError:
             pass
 
-    return pathspec.PathSpec.from_lines("gitwildmatch", patterns)
+    return pathspec.PathSpec.from_lines("gitignore", patterns)
 
 
 def scan_directory(root_path: Path, extra_excludes: List[str] = None) -> List[Path]:

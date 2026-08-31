@@ -6,8 +6,8 @@
 
 ## Key Features
 
-- **Automated Repository Scanning**: Discovers source code files while honoring `.gitignore` rules and built-in ignore patterns.
-- **Interactive File Selection**: Select or deselect discovered files interactively using an in-terminal prompt (`-i`, `--interactive`) with real-time per-file token metrics.
+- **Automated Repository Scanning**: Discovers source code files while honoring `.gitignore` rules and built-in ignore patterns (including `.env` protection).
+- **Interactive File Selection & Live Search**: Select or deselect discovered files interactively using an in-terminal prompt (`-i`, `--interactive`) with an always-visible top search bar, live fuzzy filtering, and real-time per-file token metrics.
 - **Binary File Exclusion**: Automatically detects and excludes binary, compiled, and non-text files.
 - **Accurate Token Estimation**: Measures token consumption using OpenAI's `cl100k_base` encoding via `tiktoken`.
 - **Token Budget Management**: Supports budget limits (e.g., `8000`, `32k`, `128k`) and prioritizes files within the designated capacity.
@@ -94,10 +94,12 @@ ctxpack -i
 ```
 
 Interactive controls:
+- **Type text**: Live search & fuzzy filter files (e.g. type `cli`, `fmt`, or `py` to instantly filter).
 - **Arrow Keys (Up / Down)**: Navigate through candidate files.
-- **Enter**: Toggle file selection state (`[x]` / `[ ]`).
-- **[Select All] / [Deselect All]**: Bulk toggle all discovered files.
-- **SUBMIT**: Finalize selection and generate the packaged context.
+- **Space**: Toggle file selection state (`[x]` / `[ ]`).
+- **Ctrl+A**: Select / Deselect all visible files.
+- **Ctrl+I**: Invert current selection.
+- **Enter**: Finalize selection and generate the packaged context.
 - **Ctrl+C**: Cancel the operation safely.
 
 ### 3. Scanning a Specific Subdirectory
@@ -242,7 +244,7 @@ Markdown format organizes files under hierarchical headings and code blocks:
 `ctxpack` applies multi-stage filtering during directory traversal:
 
 1. **Default Ignore Patterns**: Automatically skips common build artifacts, package managers, and virtual environments:
-   - `.git`, `.venv`, `venv`, `env`
+   - `.git`, `.venv`, `venv`, `env`, `.env`
    - `__pycache__`, `*.pyc`, `.DS_Store`
    - `node_modules`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`
    - `dist`, `build`, `target`, `bin`, `obj`
@@ -262,8 +264,27 @@ ctxpack/
 ├── formatter.py      # XML / Markdown rendering and ASCII directory tree builder
 ├── scanner.py        # Recursive directory traversal, binary filtering, and gitignore evaluation
 ├── tokenizer.py      # tiktoken encoding, token measurement, and budget allocation logic
-├── tui.py            # Interactive terminal file selection prompt using questionary
+├── tui.py            # Interactive terminal file selection prompt with search bar & fuzzy filter
 └── writer.py         # File system writer and clipboard integration handler
+
+tests/                # Automated pytest test suite (69 tests)
+├── test_cli.py
+├── test_formatter.py
+├── test_scanner.py
+├── test_tokenizer.py
+├── test_tui.py
+└── test_writer.py
+```
+
+---
+
+## Running Tests
+
+Install test dependencies and run the full test suite with `pytest`:
+
+```bash
+pip install -e .[test]
+pytest -v
 ```
 
 ---
